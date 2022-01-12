@@ -1,0 +1,91 @@
+package com.github.funczz.kotlin.extensions.swing.bg_image_painter
+
+import io.kotlintest.provided.AbstractGridBagJPanel
+import java.awt.Graphics
+import java.awt.GridBagConstraints
+import java.awt.Image
+import javax.imageio.ImageIO
+import javax.swing.Box
+import javax.swing.ButtonGroup
+import javax.swing.JRadioButton
+
+class BgImagePainterPanel : AbstractGridBagJPanel() {
+
+    private val bgImage: Image = ClassLoader
+        .getSystemClassLoader()
+        .getResourceAsStream("coffee-512x512.png")
+        .let {
+            ImageIO.read(it!!)
+        }
+        .also {
+            it.flush()
+        }
+
+    private var bgImagePainter: IBgImagePainter
+
+    private val centerRadioButton = JRadioButton("Center").also {
+        it.addActionListener {
+            setBgImagePainter(CenterBgImagePainter)
+        }
+    }
+    private val fillRadioButton = JRadioButton("Fill").also {
+        it.addActionListener {
+            setBgImagePainter(FillBgImagePainter)
+        }
+    }
+    private val tileRadioButton = JRadioButton("Tile").also {
+        it.addActionListener {
+            setBgImagePainter(TileBgImagePainter)
+        }
+    }
+
+    private val bgImagePainterButtonGroup = ButtonGroup().also {
+        it.add(centerRadioButton)
+        it.add(fillRadioButton)
+        it.add(tileRadioButton)
+    }
+
+    override fun paintComponent(g: Graphics) {
+        super.paintComponent(g)
+        bgImagePainter.paint(this, g, bgImage)
+
+    }
+
+    private fun setBgImagePainter(painter: IBgImagePainter) {
+        bgImagePainter = painter
+        revalidate()
+        repaint()
+    }
+
+    init {
+        bgImagePainter = CenterBgImagePainter
+        centerRadioButton.isSelected = true
+
+        addComponent(
+            component = centerRadioButton,
+            gridx = 0,
+            gridy = 0,
+            anchor = GridBagConstraints.NORTH
+        )
+        addComponent(
+            component = fillRadioButton,
+            gridx = 1,
+            gridy = 0,
+            anchor = GridBagConstraints.NORTH
+        )
+        addComponent(
+            component = tileRadioButton,
+            gridx = 3,
+            gridy = 0,
+            anchor = GridBagConstraints.NORTH
+        )
+        addComponent(
+            component = Box.createVerticalGlue(),
+            gridx = 0,
+            gridy = 1,
+            fill = GridBagConstraints.BOTH,
+            weighty = 1.0
+        )
+    }
+
+}
